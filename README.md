@@ -16,6 +16,6 @@ The original AppDeploy React/Vite source is preserved in this repository. A Verc
 - Vercel: web app and serverless API.
 - Supabase: authentication and PostgreSQL.
 - Cloudflare Stream: large video uploads and playback.
-- Paystack: KSh checkout and server-side verification.
+- Verotel FlexPay: USD checkout with signed server-to-server postback verification.
 
 See [MIGRATION.md](MIGRATION.md) for setup, product rules and cutover requirements. Never commit secret keys or private media.
