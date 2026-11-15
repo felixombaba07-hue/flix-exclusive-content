@@ -35,11 +35,12 @@ async function isActiveMember(userId: string) {
 }
 
 const ACCESS_PLANS: Record<string, { id: string; name: string; amount: number; days: number; discountPercent: number }> = {
-  daily: { id: 'daily', name: '2 Days', amount: 49, days: 2, discountPercent: 0 },
-  weekly: { id: 'weekly', name: 'Weekly', amount: 199, days: 7, discountPercent: 0 },
-  fortnight: { id: 'fortnight', name: '14 days', amount: 299, days: 14, discountPercent: 0 },
-  monthly: { id: 'monthly', name: '30 days', amount: 599, days: 30, discountPercent: 0 },
-  quarterly: { id: 'quarterly', name: '90 days', amount: 1299, days: 90, discountPercent: 0 },
+  daily: { id: 'daily', name: '2 Days', amount: 99, days: 2, discountPercent: 0 },
+  weekly: { id: 'weekly', name: '7 Days', amount: 249, days: 7, discountPercent: 0 },
+  fortnight: { id: 'fortnight', name: '14 Days', amount: 399, days: 14, discountPercent: 0 },
+  monthly: { id: 'monthly', name: '30 Days', amount: 799, days: 30, discountPercent: 0 },
+  quarterly: { id: 'quarterly', name: '90 Days', amount: 1499, days: 90, discountPercent: 0 },
+  lifetime: { id: 'lifetime', name: 'Lifetime', amount: 9999, days: 36500, discountPercent: 0 },
 };
 
 async function currentPlans() {
