@@ -14,7 +14,7 @@ Never commit these values, paste the signature key into source code, or expose t
 ## FlexPay facts to account for
 - Create order with GET https://secure.verotel.com/startorder and FlexPay version 4.
 - Required subscription fields include shopID, type=subscription, priceAmount, priceCurrency, period (ISO-8601 duration), subscriptionType and signature.
-- Recurring subscriptions require at least a 7-day period; one-time subscriptions have a 2-day minimum period. Therefore the 1-day membership must be a one-time purchase, not recurring.
+- Recurring subscriptions require at least a 7-day period; one-time subscriptions have a 2-day minimum period. The shortest membership has been changed to 2 days and must be a one-time purchase, not recurring.
 - Verotel supports sale currencies USD, EUR, GBP, AUD, CAD, CHF, DKK, NOK and SEK. KES is not listed. Do not silently send KES amounts as if supported. Confirm settlement and displayed price currency with Verotel and choose an explicit conversion/rounding policy before enabling checkout.
 - The startorder signature is SHA-256 over the signature key followed by colon-separated, alphabetically sorted key=value parameters (excluding email); UTF-8 values. Verify implementation against Verotel's official test vectors.
 - Verotel sends transaction postbacks as GET requests. Validate the signature before changing a membership. Return HTTP 200 with plain text OK within 30 seconds. Do not grant access from the browser success redirect alone.
@@ -22,7 +22,7 @@ Never commit these values, paste the signature key into source code, or expose t
 - Associate each checkout with a Supabase-authenticated user using an opaque, random referenceID mapped to a pending checkout row. Do not trust a user ID supplied only in an unsigned query parameter.
 
 ## Membership plan mapping
-The product currently advertises 1, 7, 14, 30 and 90 days. Confirm with Verotel whether 14-, 30- and 90-day periods are configured as one-time purchases or recurring subscriptions. The daily plan must be one-time. Do not enable a plan until the exact charge amount/currency and period are approved.
+The product now advertises 2, 7, 14, 30 and 90 days. Use one-time purchases for all plans unless recurring billing is explicitly enabled and approved. A 2-day plan must be one-time. Do not enable a plan until the exact charge amount/currency and period are approved.
 
 ## Setup steps
 1. Finish Verotel merchant underwriting and get written approval for the exact adult-content business and content category.
@@ -36,4 +36,4 @@ The product currently advertises 1, 7, 14, 30 and 90 days. Confirm with Verotel 
 - https://controlcenter.verotel.com/flexpay-doc/subscription.html
 - https://integrations.yoursafe.com/en/flexpay/subscription
 
-Status: documentation only. No payment endpoint is enabled and no live transaction has been processed.
+Status: database preparation and source documentation updated. Checkout endpoints and frontend migration are not yet connected; no live transaction has been processed.
