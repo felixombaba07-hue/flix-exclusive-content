@@ -1,0 +1,27 @@
+create extension if not exists pgcrypto;
+create table if not exists public.profiles (id uuid primary key references auth.users(id) on delete cascade, display_name text, role text not null default 'member' check(role in ('member','admin')), created_at timestamptz not null default now());
+create table if not exists public.plans (id text primary key, name text not null, days int not null check(days between 1 and 365), amount_kes int not null check(amount_kes>0), discount_percent int not null default 0 check(discount_percent between 0 and 90), active boolean not null default true, updated_at timestamptz not null default now());
+insert into public.plans(id,name,days,amount_kes) values ('daily','Daily',1,49),('weekly','Weekly',7,199),('fortnight','14 days',14,299),('monthly','30 days',30,599),('quarterly','90 days',90,1299) on conflict(id) do nothing;
+create table if not exists public.videos (id uuid primary key default gen_random_uuid(), title text not null, description text, category text not null default 'Exclusive', stream_uid text, thumbnail_url text, duration_seconds int, is_promo boolean not null default false, promo_order int not null default 0, published boolean not null default true, views bigint not null default 0, created_by uuid references auth.users(id), created_at timestamptz not null default now(), updated_at timestamptz not null default now());
+create table if not exists public.payments (id uuid primary key default gen_random_uuid(), user_id uuid not null references auth.users(id), plan_id text not null references public.plans(id), reference text unique not null, amount_kes int not null check(amount_kes>0), status text not null default 'pending' check(status in ('pending','success','failed')), paystack_transaction_id text, created_at timestamptz not null default now(), verified_at timestamptz);
+create table if not exists public.memberships (id uuid primary key default gen_random_uuid(), user_id uuid not null references auth.users(id) on delete cascade, plan_id text not null references public.plans(id), starts_at timestamptz not null default now(), ends_at timestamptz not null, payment_reference text unique not null, created_at timestamptz not null default now());
+create index if not exists memberships_user_expiry_idx on public.memberships(user_id,ends_at desc);
+create table if not exists public.favorites (user_id uuid not null references auth.users(id) on delete cascade, video_id uuid not null references public.videos(id) on delete cascade, created_at timestamptz not null default now(), primary key(user_id,video_id));
+create table if not exists public.video_likes (user_id uuid not null references auth.users(id) on delete cascade, video_id uuid not null references public.videos(id) on delete cascade, created_at timestamptz not null default now(), primary key(user_id,video_id));
+create table if not exists public.video_comments (id uuid primary key default gen_random_uuid(), user_id uuid not null references auth.users(id) on delete cascade, video_id uuid not null references public.videos(id) on delete cascade, body text not null check(char_length(body) between 1 and 2000), created_at timestamptz not null default now());
+create table if not exists public.video_views (id uuid primary key default gen_random_uuid(), user_id uuid references auth.users(id) on delete set null, video_id uuid not null references public.videos(id) on delete cascade, created_at timestamptz not null default now());
+alter table public.profiles enable row level security; alter table public.plans enable row level security; alter table public.videos enable row level security; alter table public.payments enable row level security; alter table public.memberships enable row level security; alter table public.favorites enable row level security; alter table public.video_likes enable row level security; alter table public.video_comments enable row level security; alter table public.video_views enable row level security;
+create policy "published catalogue visible" on public.videos for select using(published);
+create policy "active plans visible" on public.plans for select using(active);
+create policy "profile owner read" on public.profiles for select using(auth.uid()=id);
+create policy "profile owner update" on public.profiles for update using(auth.uid()=id) with check(auth.uid()=id);
+create policy "own memberships read" on public.memberships for select using(auth.uid()=user_id);
+create policy "own payments read" on public.payments for select using(auth.uid()=user_id);
+create policy "own favorites all" on public.favorites for all using(auth.uid()=user_id) with check(auth.uid()=user_id);
+create policy "likes read" on public.video_likes for select using(auth.uid() is not null);
+create policy "own likes add" on public.video_likes for insert with check(auth.uid()=user_id);
+create policy "own likes delete" on public.video_likes for delete using(auth.uid()=user_id);
+create policy "comments read" on public.video_comments for select using(auth.uid() is not null);
+create policy "own comments add" on public.video_comments for insert with check(auth.uid()=user_id);
+create policy "own views read" on public.video_views for select using(auth.uid()=user_id);
+-- Admin writes, payment verification, playback entitlements and Stream token issuance must run server-side with service-role credentials after role checks.
